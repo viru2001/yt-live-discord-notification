@@ -142,6 +142,16 @@ def run_poll_loop():
 
 # ========== Flask Routes ==========
 
+def heartbeat_loop():
+    url = os.getenv("APP_URL")  # your own service URL
+    while True:
+        try:
+            requests.get(url, timeout=5)
+        except Exception as e:
+            logging.warning("Heartbeat ping failed: %s", e)
+        time.sleep(5 * 60)  # ping every 5 minutes
+
+
 @app.route("/")
 def home():
     return "✅ YouTube → Discord notifier is running."
@@ -157,6 +167,7 @@ if __name__ == "__main__":
 
     # Start polling loop in background thread
     threading.Thread(target=run_poll_loop, daemon=True).start()
+    threading.Thread(target=heartbeat_loop, daemon=True).start()
 
     # Start Flask server (Render expects a web server)
     port = int(os.getenv("PORT", 8000))
